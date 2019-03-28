@@ -1,0 +1,20 @@
+@import './common/reset.scss';
+@import './common/px2rem.scss';
+html, body {
+  height: 100%;
+  font-family:"PingFang SC","Arial","Microsoft YaHei","黑体","宋体",sans-serif;
+  &::-webkit-scrollbar {
+    display: none;
+}
+}
+
+#app{
+  // background: #ccc;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.noMask {
+  overflow: hidden;
+  height: 100%;
+}
