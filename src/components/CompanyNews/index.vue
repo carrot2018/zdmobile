@@ -6,7 +6,7 @@
         <li
         v-for="(item, index) in newsList"
         :key="index"
-        @click="goDetail(item.newsId, item.type)"
+        @click="goDetail(item.id,item.typeId,item.pageIndex)"
         >
           <div class="main-news--list">
             <div class="main-news__left">
@@ -15,11 +15,14 @@
             <div class="main-news__right">
               <h5 class="main-news__right__title"
               style="-webkit-box-orient:vertical;">{{ item.title }}</h5>
-              <span v-html="item.content" class="main-news__right__content"></span>
+              <span 
+              v-html="item.content" 
+              class="main-news__right__content"
+              style="-webkit-box-orient:vertical;"></span>
               <div class="main-news__right__bottom">
                 <span class="main-news__right__bottom__text">{{ item.pushTime }}</span>
-                <span class="main-news__right__bottom__text">分类:{{ item.pressType }}</span>
-                <span class="main-news__right__bottom__text">来源:{{ item.source }}</span>
+                <span class="main-news__right__bottom__text">分类：{{ item.pressType.typeName }}</span>
+                <span class="main-news__right__bottom__text">来源：{{ item.source }}</span>
               </div>
             </div>
           </div>
@@ -35,60 +38,50 @@ export default {
   name: 'companyNews',
   data() {
     return {
-      newsList:[
-        // {
-        //   id: '1',
-        //   imgSrc: 'http://img.cookhome.club/images/d541a02596f26133959a1bdd0fc93b82.jpg?x-oss-process=image/resize,h_150',
-        //   title: '【系列报道】大师名厨助力名厨之家2019砥砺前行！（一）',
-        //   content: '2019年，是名厨之家拼搏奋斗、勇于创造的一年，更是智慧喷涌、见证奇迹的一年。名厨之家始终与全国厨师一起，为厨师发声、关心厨师、帮助厨师、让厨师价值最大化。感谢全国厨师朋友对名厨之家的厚爱。你们的祝福和助力，都是我们砥砺前行的最大激励。 　　下面我们就来听听各位名厨的心声，以及对名厨之家新业务、新服务的关注和期待。',
-        //   pushTime: '02-28',
-        //   pressType: '行业动态',
-        //   source: '投资界'
-        // },
-        // {
-        //   id: '2',
-        //   imgSrc: 'http://img95.699pic.com/photo/50055/0952.jpg_wh300.jpg',
-        //   title: '【系列报道】大师名厨助力名厨之家2019砥砺前行！（一）',
-        //   content: '2019年，是名厨之家拼搏奋斗、勇于创造的一年，更是智慧喷涌、见证奇迹的一年。名厨之家始终与全国厨师一起，为厨师发声、关心厨师、帮助厨师、让厨师价值最大化。感谢全国厨师朋友对名厨之家的厚爱。你们的祝福和助力，都是我们砥砺前行的最大激励。 　　下面我们就来听听各位名厨的心声，以及对名厨之家新业务、新服务的关注和期待。',
-        //   pushTime: '02-28',
-        //   pressType: '行业动态',
-        //   source: '投资界'
-        // },
-        // {
-        //   id: '3',
-        //   imgSrc: 'http://i1.umei.cc/uploads/tu/201902/9999/4e71d081ad.jpg',
-        //   title: '【系列报道】大师名厨助力名厨之家2019砥砺前行！（一）',
-        //   content: '2019年，是名厨之家拼搏奋斗、勇于创造的一年，更是智慧喷涌、见证奇迹的一年。名厨之家始终与全国厨师一起，为厨师发声、关心厨师、帮助厨师、让厨师价值最大化。感谢全国厨师朋友对名厨之家的厚爱。你们的祝福和助力，都是我们砥砺前行的最大激励。 　　下面我们就来听听各位名厨的心声，以及对名厨之家新业务、新服务的关注和期待。',
-        //   pushTime: '02-28',
-        //   pressType: '行业动态',
-        //   source: '投资界'
-        // }
-      ]
+      newsList:[],
+      rows:0
     }
   },
 
   methods: {
     // 根据id去到详情页
-    goDetail(id, type) {
+    goDetail(id, type, index) {
+      console.log(index)
       this.$router.push({
         name:'newsDetail',
         query: {
           newsId: id,
-          type: type
+          type: type,
+         index: index
         }
       })
     },
 
+    // 获取新闻数据
     getNews() {
-      axios.get('/static/api/news.json', {
-       params: {
-         newsId: this.$route.params.newsId
-       }
+      let index = 1;
+      axios.get('/server/invoker/content/selectPressContentsByTypeName', {
+       params: { "typeName":"公司新闻", "currentPage":index, "pageSize":10 }
      }).then((response) => {
        let result = response.data;
-      //  console.log(result);
-        this.newsList = result.data.news[1].new
-        //  console.log(this.news)
+       console.log(result);
+       this.newsList = result.data.contents;
+       this.rows = result.data.rows
+       // 时间戳转换成时间
+       function timestampToTime(timestamp) {
+        let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+        let Y = date.getFullYear() + '-';
+        let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+        let D = date.getDate() + ' ';
+        let h = date.getHours() + ':';
+        let m = date.getMinutes() + ':';
+        let s = date.getSeconds();
+        return M+D;
+        }
+        // 用some方法对数据进行检测并操作
+        this.newsList.some((item, i) => {
+          item.pushTime = timestampToTime(item.pushTime)
+        })
      })
     }
   },
@@ -139,7 +132,12 @@ export default {
           }
         }
         .main-news__right {
+          padding: px2rem(5) 0;
+          flex: 1;
           overflow:hidden;
+           display: flex;
+          flex-direction: column;
+          justify-content: space-between;
           &__title {
             font-size: px2rem(28);
             line-height: px2rem(38);
@@ -169,14 +167,13 @@ export default {
              width: 100%;
             //  overflow:hidden;
               display: flex;
-            //  display: flex;
-            //  justify-content: space-around;
+              justify-content: space-between;
              &__text {
                font-size: px2rem(20);
                margin-right: px2rem(8);
                white-space:nowrap;
                &:nth-last-child(1) {
-                  overflow:hidden;
+                overflow:hidden;
                 text-overflow:ellipsis;
                 white-space:nowrap;
                }

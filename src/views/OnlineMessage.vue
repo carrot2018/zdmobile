@@ -85,10 +85,15 @@ export default {
 
 <style lang="scss" scoped>
 @import '../styles/common/px2rem.scss';
+/deep/ .van-field__body {
+  height: px2rem(100);
+}
 /deep/ .van-cell {
+  // height: px2rem(80);
   width: 100%;
   border-radius: px2rem(12);
   margin-bottom: px2rem(28);
+  padding-left: px2rem(28);
   font-size: px2rem(28);
   &:nth-last-of-type(3) {
     width: px2rem(586);

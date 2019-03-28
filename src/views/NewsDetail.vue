@@ -17,7 +17,7 @@
           <h1 class="mian-content__top__title">{{ news.title }}</h1>
           <div class="mian-content__top__data">
             <span>{{ news.pushTime }}</span>
-            分类：<span>{{ news.pressType }}</span>
+            分类：<span>{{ news.typeId }}</span>
             来源：<span>{{ news.source }}</span>
           </div>
           <div class="mian-content__top__img">
@@ -62,22 +62,19 @@ export default {
  },
  data() {
    return {
-      // news:{
-      //   imgSrc: 'http://img.cookhome.club/news/DgshdwMUHpxrRsEqkxWp9lRwJ2tl8NaFTlmpZZ26.png',
-      //   title: '【系列报道】大师名厨助力名厨之家2019砥砺前行！（一）',
-      //   pushTime: '02-28',
-      //   pressType: '行业动态',
-      //   source: '投资界',
-      //   content: '<p>原生态、有机、绿色的美食是&ldquo;龙菜&rdquo;的特质。为了推广&ldquo;龙菜&rdquo;，使其成为黑龙江的名片，黑龙江正在积极建设中国粮食和绿色有机食品生产基地，解决全国各地特色食材、特色农产品销售难、推广难的难题。洞见此症结，名厨之家在多年前已开始规划、布局农业产业、餐饮产业新型业态，在哈尔滨、北京、上海、西安、成都、武汉、济南、深圳八地建立了8大食材研发推广中心。</p><p>黑龙江绿色食材研发推广中心是最先投入运营的中心之一。以黑龙江绿色食材孵化基地作为发展核心，聚焦全国绿色、无污染农业用地及偏远山区贫困人群，通过名厨之家全国32家省级分公司力量整合全国无污染农业用地，利用留守人员劳动力，发展绿色有机食品种植，为全国500万家餐饮机构提供绿色有机食材。</p><p>当下，国家正在大力推进扶贫攻坚工作，实施精准扶贫方略，增加扶贫投入，出台优惠政策措施，坚持分类施策，因人因地施策，因贫困原因施策，因贫困类型施策，通过扶持广泛动员全社会力量参与扶贫。绿色食材孵化基地响应国家扶贫号召，接下来计划与政府相关负责部门达成合作，为黑龙江各地贫困人口提供定点培训，挖掘产品研发和食材中心的孵化功能，解决黑龙江农产品深加工、提高附加值和销售瓶颈困难。</p>'
-      // }
-      news:{},
+    
+      news:[],
       
       newsType:'行业新闻', // 面包屑
       goNewsType: '/newsCenter', // 面包屑跳转路径
       nextNew: '',
       lastNew: '',
-      type: parseInt(this.$route.query.type),
-      id: parseInt(this.$route.query.newsId)
+      // type: parseInt(this.$route.query.type),
+      // id: parseInt(this.$route.query.newsId)
+      type:'',
+      id:'',
+      index:0,
+      Total:0,
     }
  },
 
@@ -117,83 +114,157 @@ export default {
     }
   },
 
-   getNewsDetail() {
-     axios.get('/static/api/news.json', {
-       params: {
-         newsId: this.$route.query.newsId
-       }
+  // 获取上一条新闻
+  getlastNew() {
+    let index = this.index;
+    // console.log(index)
+    index-=1;
+    if(index <= -1) {
+      this.lastNew = '没有更多新闻了'
+    } else {
+      axios.get('/server/invoker/content/getUpPressContentByPageIndex', {
+       params: {"pageIndex":index}
+      }).then((response) => {
+        let result = response.data;
+        this.lastNew = result.data[0].title;
+        //  this.index = result.data.pageIndex;
+          // console.log(1111,result)
+      })
+    }
+   
+  },
+
+  // 获取下一条新闻
+  getNextNew() {
+    let index = this.index;
+    index+=1;
+    console.log(this.Total,22)
+    if(index >= this.Total) {
+      this.nextNew = '没有更多新闻了'
+    } else {
+      axios.get('/server/invoker/content/getDownPressContentByPageIndex', {
+       params: {"pageIndex":index}
      }).then((response) => {
-      //  let that = this
-       let result = response.data;
-       let type = this.$route.query.type;
-       console.log(type)
-      // 现在只有3条新闻，所以现在只根据json数据的id来计算，后面要改
-       if(type === '1') {
-         this.newsType = '行业新闻';
-         this.goNewsType = '/newsCenter/industryNews';
-        //  let id = parseInt(this.$route.query.newsId) ;
-        let id = this.id;
-           console.log(id )
-        if(id >= 3 || id <= 1){
-          if(id >= 3) {
-            let lastId = id-2;
-           this.nextNew = '没有新闻了',
-           this.lastNew = result.data.news[0].new[lastId].title;
-         } 
-         if(id <= 1) {
-            this.nextNew = result.data.news[0].new[id].title;
-           this.lastNew = '没有新闻了'
-         } 
-        } else {
-           let lastId = id-2;
-          this.nextNew = result.data.news[0].new[id].title;
-          this.lastNew = result.data.news[0].new[lastId].title;
-        }
+        let result = response.data;
+       console.log(1111,result)
+        this.nextNew = result.data[0].title;
+     })
+    }
+    
+  },
+
+   getNewsDetail() {
+    //  let _this = this
+     let id = this.id
+     axios.get('/server/invoker/content/selectContentById', {
+       params: {"id":id}
+     }).then((response) => {
+      let result = response.data;
+      
+      let newObj = result.data;
+      // console.log(this.news,result)
+      function timestampToTime(timestamp) {
+        let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+        let Y = date.getFullYear() + '-';
+        let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+        let D = date.getDate() + ' ';
+        let h = date.getHours() + ':';
+        let m = date.getMinutes() + ':';
+        let s = date.getSeconds();
+        return M+D;
+      }
+      
+      newObj.pushTime = timestampToTime(newObj.pushTime);
+      if(newObj.typeId==='c8ce902c3ad64162be9caebd935adb') {
+        newObj.typeId = '行业新闻'
+      } else {
+        newObj.typeId = '公司新闻'
+      }
+   
+      this.news = newObj
+     
+     })
+
+    //  axios.get('/static/api/news.json', {
+    //    params: {
+    //      newsId: this.$route.query.newsId
+    //    }
+    //  }).then((response) => {
+    //   //  let that = this
+    //    let result = response.data;
+    //    let type = this.$route.query.type;
+    //    console.log(type)
+    //   // 现在只有3条新闻，所以现在只根据json数据的id来计算，后面要改
+    //    if(type === '1') {
+    //      this.newsType = '行业新闻';
+    //      this.goNewsType = '/newsCenter/industryNews';
+    //     //  let id = parseInt(this.$route.query.newsId) ;
+    //     let id = this.id;
+    //        console.log(id )
+    //     if(id >= 3 || id <= 1){
+    //       if(id >= 3) {
+    //         let lastId = id-2;
+    //        this.nextNew = '没有新闻了',
+    //        this.lastNew = result.data.news[0].new[lastId].title;
+    //      } 
+    //      if(id <= 1) {
+    //         this.nextNew = result.data.news[0].new[id].title;
+    //        this.lastNew = '没有新闻了'
+    //      } 
+    //     } else {
+    //        let lastId = id-2;
+    //       this.nextNew = result.data.news[0].new[id].title;
+    //       this.lastNew = result.data.news[0].new[lastId].title;
+    //     }
          
 
-        id--;
-         this.news = result.data.news[0].new[id]
+    //     id--;
+    //      this.news = result.data.news[0].new[id]
         
-       } else if(type === '2') {
-         this.newsType = '公司新闻';
-         this.goNewsType = '/newsCenter/companyNews';
-        //  let id = this.$route.query.newsId;
-        let id = this.id;
+    //    } else if(type === '2') {
+    //      this.newsType = '公司新闻';
+    //      this.goNewsType = '/newsCenter/companyNews';
+    //     //  let id = this.$route.query.newsId;
+    //     let id = this.id;
 
-        if(id >= 3 || id <= 1){
-          if(id >= 3) {
-            let lastId = id-2;
-           this.nextNew = '没有新闻了',
-           this.lastNew = result.data.news[1].new[lastId].title;
-         } 
-         if(id <= 1) {
-            this.nextNew = result.data.news[1].new[id].title;
-           this.lastNew = '没有新闻了'
-         } 
-        } else {
-           let lastId = id-2;
-          this.nextNew = result.data.news[1].new[id].title;
-          this.lastNew = result.data.news[1].new[lastId].title;
-        }
+    //     if(id >= 3 || id <= 1){
+    //       if(id >= 3) {
+    //         let lastId = id-2;
+    //        this.nextNew = '没有新闻了',
+    //        this.lastNew = result.data.news[1].new[lastId].title;
+    //      } 
+    //      if(id <= 1) {
+    //         this.nextNew = result.data.news[1].new[id].title;
+    //        this.lastNew = '没有新闻了'
+    //      } 
+    //     } else {
+    //        let lastId = id-2;
+    //       this.nextNew = result.data.news[1].new[id].title;
+    //       this.lastNew = result.data.news[1].new[lastId].title;
+    //     }
 
-        id--;
-         this.news = result.data.news[1].new[id]
-       }
-            //  window.location.reload();
-        //  console.log(this.news)
+    //     id--;
+    //      this.news = result.data.news[1].new[id]
+    //    }
+    //         //  window.location.reload();
+    //     //  console.log(this.news)
        
-     })
+    //  })
    }
  },
 
  created() {
-    this.type = this.$route.query.type;
-  //  this.id = this.$route.query.newsId;
-   this.getNewsDetail();
+   this.type = this.$route.query.type;
+   this.id = this.$route.query.newsId;
+   this.index = this.$route.query.index;
+   this.Total = this.$route.query.Total;
+  //  console.log( this.id,this.type ,this.index)
+   
  },
  mounted() {
-    
-    
+   this.getNewsDetail();
+    this.getlastNew();
+    this.getNextNew();
  },
 
   // watch: {
