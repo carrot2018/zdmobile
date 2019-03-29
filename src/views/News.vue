@@ -14,7 +14,7 @@
             v-for="(items, index) in newsList"
             :key="index"
        
-            @click="goDetail(items.id, items.typeId)"
+            @click="goDetail(items.id, items.typeId, items.pageIndex)"
             >
             <div class="main-news__list__box">
               <div class="news-box__left">
@@ -44,14 +44,9 @@ export default {
   data() {
     return {
       // 后台返回的新闻
-      newsList:[
-        // {
-        //   title: '六道无锡本帮菜制作，民间风味一目了然!',
-        //   source: '红厨网',
-        //   pushTime: '3小时前',
-        //   imgSrc: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1552568762989&di=f58dc2d32dbbe62c22d3f2b8e6a834fb&imgtype=0&src=http%3A%2F%2Fimg18.3lian.com%2Fd%2Ffile%2F201710%2F13%2F338b9c076dda5bc17e9239af07c79b62.jpg'
-        // },
-      ]
+      newsList:[],
+      rows:0,
+      typeId:''
     }
   },
   methods: {
@@ -60,13 +55,17 @@ export default {
     },
 
     getNews() {
-      axios.post('/server/invoker/content/selectPressContentsTop3/', {
-       
+     
+      axios.get('/server/invoker/content/selectPressContentsByTypeName', {
+       params:{"typeName": '', "currentPage": 1, "pageSize":3}
      }).then((response) => {
        let result = response.data;
        console.log(result);
-       this.newsList = result.data;
+       this.newsList = result.data.contents;
 
+      //  this.typeId = result.data.contents.typeId
+        // this.rows = result.rows;
+        // console.log(result.data.contents)
        function timestampToTime(timestamp) {
         let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
         let Y = date.getFullYear() + '-';
@@ -78,22 +77,60 @@ export default {
         return Y+M+D;
       }
        this.newsList.some((item, i) => {
-         item.pushTime = timestampToTime(item.pushTime)
+         item.pushTime = timestampToTime(item.pushTime);
+        //  this.typeId = item.typeId
+        //  if(item.typeId === 'c8ce902c3ad64162be9caebd935adb'){
+        //    this.typeName = '行业新闻'
+        //  } else {
+        //    this.typeName = '公司新闻'
+        //  }
        })
-        // this.newsList = result.data.news[0].new
-        //  console.log(this.news)
+        // let contents = result.data.contents;
+        // let one = contents[0].pressType.typeName;
+        // let two = contents[1].pressType.typeName;
+        // let three = contents[2].pressType.typeName
+        // // one!==two?contents[1].pageIndex = 0:contents[1].pageIndex = 1;
+        // // three !== one ? contents[1].pageIndex = 1:contents[1].pageIndex = 1;
+        // console.log(contents[1].pageIndex)
+        // if(two!==one) {
+        //   contents[1].pageIndex = 0
+        //   if(three!==one) {
+        //     contents[1].pageIndex = 1
+        //   }
+        // } else {
+        //   contents[1].pageIndex = 1
+        //   if(three !== two) {
+        //     contents[2].pageIndex = 0
+        //   } else {
+        //     contents[2].pageIndex = 2
+        //   }
+        // }
+        // this.newsList = contents;
+       
      })
     },
 
-     goDetail(id, type) {
+     goDetail(id, type, index, rows) {
+    //    let type1 = type
+    //     console.log(type1)
+    //   axios.get('/server/invoker/content/getPressType', {
+    //    params: { "typeId":type1 }
+    //  }).then((response) => {
+    //    console.log(response)
+    //    let result = response.data;
+    //    let typeName = result.data.typeName;
+    //  })
       this.$router.push({
         name:'newsDetail',
         query: {
           newsId: id,
-          type: type
+          type: type,
+          index: index,
+          // Total: this.rows
         }
       })
     },
+
   },
 
   created() {

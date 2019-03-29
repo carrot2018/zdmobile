@@ -1,11 +1,12 @@
 <template>
 <!-- 新闻中心 > 行内新闻 -->
-  <div class="industryNews">
+  <div class="industryNews" >
     <div class="main">
-      <ul class="main-news">
+      <ul class="main-news" >
         <li
         v-for="(item, index) in newsList"
         :key="index"
+        
         @click="goDetail(item.id,item.typeId,item.pageIndex)"
         >
           <div class="main-news--list">
@@ -27,21 +28,41 @@
             </div>
           </div>
         </li>
+        
       </ul>
+      <div 
+        v-infinite-scroll="loadMore" 
+        infinite-scroll-disabled="busy" 
+        infinite-scroll-distance="10">
+        <van-loading v-show="load"/>
+        <!-- <van-loading color="white" /> -->
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
+import { Loading } from 'vant';
+import { infiniteScroll } from 'vue-infinite-scroll';
+
 export default {
+  directives: {infiniteScroll},
   name: 'industryNews',
   data() {
     return {
-      type:1,
+      // [Loading.name]:Loading,
       newsList:[],
-      rows:0
+      rows:0,
+      flag:true,
+      currentPage:1,
+      busy:false,
+      load:false
     }
+  },
+
+  components: {
+    [Loading.name]: Loading,
   },
 
   methods: {
@@ -53,20 +74,22 @@ export default {
           newsId: id,
           type: type,
           index: index,
-          Total: this.rows
+          // Total: this.rows
         }
       })
     },
 
     // 获取新闻数据
     getNews() {
-      let index = 1;
+      let index = this.currentPage;
       axios.get('/server/invoker/content/selectPressContentsByTypeName', {
-       params: { "typeName":"行业新闻", "currentPage":index, "pageSize":10 }
+       params: { "typeName":"行业新闻", "currentPage":index, "pageSize":3 }
      }).then((response) => {
        let result = response.data;
-       console.log(result);
-      this.newsList = result.data.contents;
+      //  console.log(result);
+       //
+      // this.newsList = result.data.contents;
+      this.newsList = this.newsList.concat(result.data.contents);
        this.rows = result.data.rows
        // 时间戳转换成时间
        function timestampToTime(timestamp) {
@@ -85,23 +108,55 @@ export default {
         })
 
      })
+    },
+
+    // scroll
+    loadMore() {
+      this.load = true;
+      this.busy = true;
+      setTimeout(() => {
+        //这里请求接口去拿数据，实际应该是调用一个请求数据的方法
+        this.currentPage++;
+        this.getNews();
+        this.busy = false;
+        this.load = false;
+      }, 1000);
     }
   },
 
   created() {
-    this.getNews()
+    this.getNews();
+    
+  },
+
+  mounted() {
+    this.loadMore();
+    
+  },
+
+  watch: {
+
   },
 }
 </script>
 
 <style lang="scss" scoped>
 @import '../../styles/common/px2rem.scss';
+.van-loading {
+  height: px2rem(50);
+  width: px2rem(50);
+  position: relative;
+  left: 50%;
+  transform: translate(-50%, -50%)
+
+}
 .industryNews {
   background: #fff;
   // flex: 1;
-  min-height: px2rem(850);
+  // min-height: px2rem(850);
   .main {
     &-news {
+      min-height: px2rem(850);
        margin-top: px2rem(0);
       li:nth-last-of-type(1) {
         border-bottom: none;

@@ -4,6 +4,7 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import VueTouch from 'vue-touch'
+import infiniteScroll from 'vue-infinite-scroll'
 // import wx from 'weixin-js-sdk'
 Vue.config.productionTip = false
 
@@ -14,5 +15,6 @@ new Vue({
   el: '#app',
   router,
   components: { App },
-  template: '<App/>'
+  template: '<App/>',
+  directives: {infiniteScroll}
 })

@@ -250,7 +250,7 @@ export default ({
       bottom: 4.5%;
       // left:  px2rem(358);
       left: 50%;
-      transform: translate(-9px, 0);
+      transform: translate(-50%, 0);
       height: px2rem(34);
       width: px2rem(34);
       background-image: url('../images/down.png');

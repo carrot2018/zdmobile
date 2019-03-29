@@ -17,7 +17,7 @@
           <h1 class="mian-content__top__title">{{ news.title }}</h1>
           <div class="mian-content__top__data">
             <span>{{ news.pushTime }}</span>
-            分类：<span>{{ news.typeId }}</span>
+            分类：<span>{{ newsType }}</span>
             来源：<span>{{ news.source }}</span>
           </div>
           <div class="mian-content__top__img">
@@ -65,7 +65,7 @@ export default {
     
       news:[],
       
-      newsType:'行业新闻', // 面包屑
+      newsType:'', // 面包屑
       goNewsType: '/newsCenter', // 面包屑跳转路径
       nextNew: '',
       lastNew: '',
@@ -75,60 +75,78 @@ export default {
       id:'',
       index:0,
       Total:0,
+      typeName:'',
+      lastId:'',// 上一条新闻的id；
+      nextId:''// 下一条新闻的id；
     }
  },
 
  methods: {
 
+   // 去下一条
   goNextNew() {
-    if(this.nextNew === '没有新闻了'){
+    console.log(this.Total)
+    if(this.nextNew === '没有更多新闻了'){
       return false;
     } else {
-      this.id++;
-      this.getNewsDetail();
+      this.index++;
+      this.id = this.nextId;
+      // this.$route.query.newsId = this.id
+      console.log(this.index)
+      // this.getNewsDetail();
       this.$router.replace({
         path:'/newsDetail',
         query: {
-          newsId: this.id,
-          type: this.type
+          newsId: this.nextId,
+          type: this.type,
+          index: this.index
         }
       })
+      this.$router.go(0)
     }
     
   },
   
+  // 去上一条
   goLastNew() {
-   if(this.lastNew === '没有新闻了'){
+   if(this.lastNew === '没有更多新闻了'){
       return false;
     } else {
-      this.id--;
-      this.getNewsDetail();
+      this.index--;
+      this.id = this.lastId;
+      // this.$route.query.newsId = this.id
+      // this.getNewsDetail();
       this.$router.replace({
         path:'/newsDetail',
         query: {
-          newsId: this.id,
-          type: this.type
+          newsId: this.lastId,
+          type: this.type,
+          index: this.index
         }
       })
-     
+      this.$router.go(0)
     }
   },
 
   // 获取上一条新闻
   getlastNew() {
     let index = this.index;
-    // console.log(index)
-    index-=1;
+    let typeName = this.typeName;
+    index--;
     if(index <= -1) {
       this.lastNew = '没有更多新闻了'
     } else {
       axios.get('/server/invoker/content/getUpPressContentByPageIndex', {
-       params: {"pageIndex":index}
+       params: {"pageIndex":index,"typeName":typeName}
       }).then((response) => {
+        // 拿到上一条新闻数据
         let result = response.data;
+        //  console.log("上一条",result)
+         // 更换上一条 的新闻标题
         this.lastNew = result.data[0].title;
+        this.lastId = result.data[0].id;
         //  this.index = result.data.pageIndex;
-          // console.log(1111,result)
+          // console.log(1111,this.lastId)
       })
     }
    
@@ -137,25 +155,29 @@ export default {
   // 获取下一条新闻
   getNextNew() {
     let index = this.index;
-    index+=1;
-    console.log(this.Total,22)
+    let typeName = this.typeName;
+    index++;
     if(index >= this.Total) {
       this.nextNew = '没有更多新闻了'
     } else {
+
       axios.get('/server/invoker/content/getDownPressContentByPageIndex', {
-       params: {"pageIndex":index}
-     }).then((response) => {
+      params: {"pageIndex":index,"typeName":typeName}
+      }).then((response) => {
+        // 拿到下一条新闻数据
         let result = response.data;
-       console.log(1111,result)
+        // console.log("下一条",result)
+        // 更换下一条 的新闻标题
         this.nextNew = result.data[0].title;
-     })
+         this.nextId = result.data[0].id;
+      })
     }
     
   },
 
    getNewsDetail() {
-    //  let _this = this
      let id = this.id
+      // console.log(index,typeName)
      axios.get('/server/invoker/content/selectContentById', {
        params: {"id":id}
      }).then((response) => {
@@ -175,96 +197,72 @@ export default {
       }
       
       newObj.pushTime = timestampToTime(newObj.pushTime);
-      if(newObj.typeId==='c8ce902c3ad64162be9caebd935adb') {
-        newObj.typeId = '行业新闻'
-      } else {
-        newObj.typeId = '公司新闻'
-      }
+      // if(newObj.typeId==='c8ce902c3ad64162be9caebd935adb') {
+      //   newObj.typeId = '行业新闻'
+      //   this.newsType = '行业新闻'
+      // } else {
+      //   newObj.typeId = '公司新闻'
+      //   this.newsType = '公司新闻'
+      // }
    
       this.news = newObj
      
      })
 
-    //  axios.get('/static/api/news.json', {
-    //    params: {
-    //      newsId: this.$route.query.newsId
-    //    }
-    //  }).then((response) => {
-    //   //  let that = this
-    //    let result = response.data;
-    //    let type = this.$route.query.type;
-    //    console.log(type)
-    //   // 现在只有3条新闻，所以现在只根据json数据的id来计算，后面要改
-    //    if(type === '1') {
-    //      this.newsType = '行业新闻';
-    //      this.goNewsType = '/newsCenter/industryNews';
-    //     //  let id = parseInt(this.$route.query.newsId) ;
-    //     let id = this.id;
-    //        console.log(id )
-    //     if(id >= 3 || id <= 1){
-    //       if(id >= 3) {
-    //         let lastId = id-2;
-    //        this.nextNew = '没有新闻了',
-    //        this.lastNew = result.data.news[0].new[lastId].title;
-    //      } 
-    //      if(id <= 1) {
-    //         this.nextNew = result.data.news[0].new[id].title;
-    //        this.lastNew = '没有新闻了'
-    //      } 
-    //     } else {
-    //        let lastId = id-2;
-    //       this.nextNew = result.data.news[0].new[id].title;
-    //       this.lastNew = result.data.news[0].new[lastId].title;
-    //     }
-         
+   },
 
-    //     id--;
-    //      this.news = result.data.news[0].new[id]
-        
-    //    } else if(type === '2') {
-    //      this.newsType = '公司新闻';
-    //      this.goNewsType = '/newsCenter/companyNews';
-    //     //  let id = this.$route.query.newsId;
-    //     let id = this.id;
+    // typeid转typename
+   typeIdToTypeName(){
+      let type1 = this.type
+      // console.log(type1)
+      axios.get('/server/invoker/content/getPressType', {
+       params: { "typeId":type1 }
+     }).then((response) => {
 
-    //     if(id >= 3 || id <= 1){
-    //       if(id >= 3) {
-    //         let lastId = id-2;
-    //        this.nextNew = '没有新闻了',
-    //        this.lastNew = result.data.news[1].new[lastId].title;
-    //      } 
-    //      if(id <= 1) {
-    //         this.nextNew = result.data.news[1].new[id].title;
-    //        this.lastNew = '没有新闻了'
-    //      } 
-    //     } else {
-    //        let lastId = id-2;
-    //       this.nextNew = result.data.news[1].new[id].title;
-    //       this.lastNew = result.data.news[1].new[lastId].title;
-    //     }
+       let result = response.data;
+      //  let typeName = result.data.typeName;
+       this.typeName = result.data.typeName;
+       this.newsType = result.data.typeName;
 
-    //     id--;
-    //      this.news = result.data.news[1].new[id]
-    //    }
-    //         //  window.location.reload();
-    //     //  console.log(this.news)
-       
-    //  })
+      //  console.log(result,this.typeName)
+       this.getTotal();
+     })
+   },
+
+   getTotal() {
+     let typeName = this.typeName;
+     console.log(this.newsType)
+     axios.get('/server/invoker/content/getTotalRowByTypeName', {
+       params:{ "typeName": typeName }
+     }).then((response) => {
+       let result = response.data;
+       console.log(result)
+       this.Total = result.data
+        this.getlastNew();
+        this.getNextNew();
+     })
    }
  },
 
  created() {
+   this.typeName = this.$route.query.type;
    this.type = this.$route.query.type;
    this.id = this.$route.query.newsId;
    this.index = this.$route.query.index;
-   this.Total = this.$route.query.Total;
-  //  console.log( this.id,this.type ,this.index)
+  //  this.Total = this.$route.query.Total;
+   console.log( this.id,this.type ,this.index)
    
  },
  mounted() {
    this.getNewsDetail();
-    this.getlastNew();
-    this.getNextNew();
+   
+    this.typeIdToTypeName();
+    
+    // this.getTotal()
+ },
+
+ updated() {
+  //  this.getNewsDetail();
  },
 
   // watch: {
