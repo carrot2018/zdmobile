@@ -1,6 +1,6 @@
 <template>
   <div class="newsDetail">
-    
+    <van-loading v-show="load"/>
     <div class="bar">
       <HeaderLogo></HeaderLogo>
     </div>
@@ -53,31 +53,32 @@
 import axios from 'axios';
 import FooterLogo from '../components/FooterLogo';
 import HeaderLogo from '../components/HeaderLogo';
+import { Loading } from 'vant';
 export default {
  name: 'newDetail',
 
  components: {
    FooterLogo,
-   HeaderLogo
+   HeaderLogo,
+   [Loading.name]: Loading,
  },
  data() {
    return {
     
-      news:[],
+      news:[], // 新闻数据
       
       newsType:'', // 面包屑
       goNewsType: '/newsCenter', // 面包屑跳转路径
-      nextNew: '',
-      lastNew: '',
-      // type: parseInt(this.$route.query.type),
-      // id: parseInt(this.$route.query.newsId)
-      type:'',
-      id:'',
-      index:0,
-      Total:0,
-      typeName:'',
-      lastId:'',// 上一条新闻的id；
-      nextId:''// 下一条新闻的id；
+      nextNew: '',  // 上一条新闻的标题
+      lastNew: '', // 下一条新闻的标题
+      type:'',  // 新闻type
+      id:'',  // 新闻id
+      index:0, // 新闻索引获取上下条新闻标题
+      Total:0, // 总条数
+      typeName:'',  // 新闻类型
+      lastId:'',// 上一条新闻的id
+      nextId:'',// 下一条新闻的id
+      load:false
     }
  },
 
@@ -92,7 +93,6 @@ export default {
       this.index++;
       this.id = this.nextId;
       // this.$route.query.newsId = this.id
-      console.log(this.index)
       // this.getNewsDetail();
       this.$router.replace({
         path:'/newsDetail',
@@ -102,7 +102,10 @@ export default {
           index: this.index
         }
       })
-      this.$router.go(0)
+      this.getNewsDetail();
+      this.getlastNew();
+      this.getNextNew();
+      // this.$router.go(0)
     }
     
   },
@@ -114,8 +117,12 @@ export default {
     } else {
       this.index--;
       this.id = this.lastId;
-      // this.$route.query.newsId = this.id
+      // let newQuery = this.$route.query 
+      // newQuery.id = this.lastId;
+      // newQuery.index = this.index;
       // this.getNewsDetail();
+      // this.getlastNew();
+      // this.getNextNew();
       this.$router.replace({
         path:'/newsDetail',
         query: {
@@ -124,7 +131,10 @@ export default {
           index: this.index
         }
       })
-      this.$router.go(0)
+      this.getNewsDetail();
+      this.getlastNew();
+      this.getNextNew();
+      // this.$router.go(0)
     }
   },
 
@@ -146,7 +156,6 @@ export default {
         this.lastNew = result.data[0].title;
         this.lastId = result.data[0].id;
         //  this.index = result.data.pageIndex;
-          // console.log(1111,this.lastId)
       })
     }
    
@@ -176,6 +185,7 @@ export default {
   },
 
    getNewsDetail() {
+     this.load = true;
      let id = this.id
       // console.log(index,typeName)
      axios.get('/server/invoker/content/selectContentById', {
@@ -197,16 +207,9 @@ export default {
       }
       
       newObj.pushTime = timestampToTime(newObj.pushTime);
-      // if(newObj.typeId==='c8ce902c3ad64162be9caebd935adb') {
-      //   newObj.typeId = '行业新闻'
-      //   this.newsType = '行业新闻'
-      // } else {
-      //   newObj.typeId = '公司新闻'
-      //   this.newsType = '公司新闻'
-      // }
    
       this.news = newObj
-     
+      this.load = false;
      })
 
    },
@@ -229,14 +232,15 @@ export default {
      })
    },
 
+    // 获取总条数
    getTotal() {
      let typeName = this.typeName;
-     console.log(this.newsType)
+    //  console.log(this.newsType)
      axios.get('/server/invoker/content/getTotalRowByTypeName', {
        params:{ "typeName": typeName }
      }).then((response) => {
        let result = response.data;
-       console.log(result)
+      //  console.log(result)
        this.Total = result.data
         this.getlastNew();
         this.getNextNew();
@@ -262,7 +266,7 @@ export default {
  },
 
  updated() {
-  //  this.getNewsDetail();
+
  },
 
   // watch: {
@@ -279,7 +283,18 @@ export default {
 
 <style lang="scss" scoped>
 @import '../styles/common/px2rem.scss';
-
+.van-loading {
+  height: px2rem(80);
+  width: px2rem(80);
+  position: fixed;
+  z-index: 999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  background: rgba($color: #000000, $alpha: .3);
+  padding: px2rem(8);
+  border-radius: px2rem(10)
+}
 .newsDetail {
   flex: 1;
   flex-shrink: 0;
@@ -298,8 +313,10 @@ export default {
     // top: 0;
   }
   .main {
+    // overflow-y: auto;
     flex: 1;
     padding: 0 px2rem(32);
+ 
     .main-menu {
       margin: px2rem(40) 0 px2rem(32) 0;
       font-size: px2rem(26);
@@ -338,9 +355,14 @@ export default {
         margin-bottom: px2rem(72);
         font-size: px2rem(30);
         line-height: px2rem(40);
-        color: #333;
+        color: #000;
         /deep/ p {
-          margin-bottom: px2rem(50);
+          // margin-bottom: px2rem(50);
+          line-height: px2rem(50);
+
+        }
+        /deep/ img {
+          width: 100%
         }
       }
       &--checkout {

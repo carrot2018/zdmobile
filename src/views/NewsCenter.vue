@@ -84,6 +84,8 @@ export default {
       }
     }
     .tab-bar {
+      position: sticky;
+      top: 0;
       z-index: 998;
       flex-shrink: 0;
       height: px2rem(102);
