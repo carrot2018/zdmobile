@@ -42,7 +42,7 @@ export default {
         },
         {
           class: 'consult',
-          id: '新闻咨询',
+          id: '新闻资讯',
           path: '/newsCenter',
         },
         {

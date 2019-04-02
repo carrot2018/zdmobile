@@ -5,7 +5,7 @@
     </div>
     <div class="main">
       <div class="main-moreNews">
-        <span @click="goNewsCenter()">更多咨询（新闻中心)</span>
+        <span @click="goNewsCenter()">更多资讯（新闻中心) &gt;&gt;</span>
         <i></i>
       </div>
       <div class="main-news">
@@ -19,7 +19,7 @@
             <div class="main-news__list__box">
               <div class="news-box__left">
                 <div class="news-box__left__text">
-                  <span class="news-box__title">{{ items.title }}</span>
+                  <span class="news-box__title" style="-webkit-box-orient:vertical;">{{ items.title }}</span>
                   <div class="news-box__from">
                     <i>{{ items.source }}</i>
                     <i>{{ items.pushTime }}</i>
@@ -214,6 +214,10 @@ export default {
                     line-height: px2rem(46);
                     // font-weight: 600;
                     color: #ffffff;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
                   }
                   .news-box__from {
                     display: flex;
