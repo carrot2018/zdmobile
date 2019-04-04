@@ -54,6 +54,7 @@ export default {
       this.$router.push('/newsCenter')
     },
 
+    // 获取新闻信息
     getNews() {
      
       axios.get('/server/invoker/content/selectPressContentsByTypeName', {
@@ -67,49 +68,41 @@ export default {
         // this.rows = result.rows;
         // console.log(result.data.contents)
        function timestampToTime(timestamp) {
-        let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
-        let Y = date.getFullYear() + '-';
-        let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
-        let D = date.getDate() + ' ';
-        let h = date.getHours() + ':';
-        let m = date.getMinutes() + ':';
-        let s = date.getSeconds();
-        return Y+M+D;
+        let date1 = Math.round(new Date())
+          
+          // 计算时间间隔（数据为时间戳）
+          let timeSpace = date1 - timestamp 
+          // console.log(timeSpace)
+          // 当时间间隔小于一小时和小于一天和大一一天的时间显示
+          if(timeSpace < 3600000) {
+            let timeShow = Math.round(timeSpace/60000) + '分钟前'
+            return timeShow
+          } else if(timeSpace >= 3600000 && timeSpace < 86400000) {
+            let timeShow = Math.round(timeSpace/3600000) + '小时前'
+            return timeShow
+          } else if (timeSpace >= 86400000) {
+            let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+            let Y = date.getFullYear() + '-';
+            let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+            let D = (date.getDate()+1 < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ' ;
+            let h = date.getHours() + ':';
+            let m = date.getMinutes() + ':';
+            let s = date.getSeconds();
+            return M+D;
+          } else if (typeof timestamp === 'string'){
+            // 新闻数据在下拉刷新的时候由于上面的新闻时间已经修改，所以加次判断
+            return timestamp
+          }
       }
        this.newsList.some((item, i) => {
          item.pushTime = timestampToTime(item.pushTime);
-        //  this.typeId = item.typeId
-        //  if(item.typeId === 'c8ce902c3ad64162be9caebd935adb'){
-        //    this.typeName = '行业新闻'
-        //  } else {
-        //    this.typeName = '公司新闻'
-        //  }
        })
-        // let contents = result.data.contents;
-        // let one = contents[0].pressType.typeName;
-        // let two = contents[1].pressType.typeName;
-        // let three = contents[2].pressType.typeName
-        // // one!==two?contents[1].pageIndex = 0:contents[1].pageIndex = 1;
-        // // three !== one ? contents[1].pageIndex = 1:contents[1].pageIndex = 1;
-        // console.log(contents[1].pageIndex)
-        // if(two!==one) {
-        //   contents[1].pageIndex = 0
-        //   if(three!==one) {
-        //     contents[1].pageIndex = 1
-        //   }
-        // } else {
-        //   contents[1].pageIndex = 1
-        //   if(three !== two) {
-        //     contents[2].pageIndex = 0
-        //   } else {
-        //     contents[2].pageIndex = 2
-        //   }
-        // }
-        // this.newsList = contents;
+     
        
      })
     },
 
+    // 点击新闻去到新闻详情
      goDetail(id, type, index, rows) {
     //    let type1 = type
     //     console.log(type1)
@@ -169,8 +162,10 @@ export default {
       justify-content: center;
       .main-moreNews {
         position: absolute;
-        bottom: px2rem(192);
+        // bottom: px2rem(192);
+        bottom: 14.4%;
         span {
+          border-bottom: 1px solid #fff;
           font-size: px2rem(32);
           color: #ffffff;
         }
@@ -179,7 +174,8 @@ export default {
         height: px2rem(650);
         position: absolute;
         width: px2rem(686);
-        top: px2rem(220);
+        // top: px2rem(220);
+        top: 15.7%;
         // background: #ccc;
         // opacity: 0.5;
         .main-news__list {

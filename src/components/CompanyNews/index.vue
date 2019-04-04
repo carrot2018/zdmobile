@@ -89,18 +89,46 @@ export default {
        this.rows = result.data.rows
        // 时间戳转换成时间
        function timestampToTime(timestamp) {
-        let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
-        let Y = date.getFullYear() + '-';
-        let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
-        let D = date.getDate() + ' ';
-        let h = date.getHours() + ':';
-        let m = date.getMinutes() + ':';
-        let s = date.getSeconds();
-        return M+D;
+        let date1 = Math.round(new Date())
+          
+          // 计算时间间隔（数据为时间戳）
+          let timeSpace = date1 - timestamp 
+          // console.log(timeSpace)
+          // 当时间间隔小于一小时和小于一天和大一一天的时间显示
+          if(timeSpace < 3600000) {
+            let timeShow = Math.round(timeSpace/60000) + '分钟前'
+            return timeShow
+          } else if(timeSpace >= 3600000 && timeSpace < 86400000) {
+            let timeShow = Math.round(timeSpace/3600000) + '小时前'
+            return timeShow
+          } else if (timeSpace >= 86400000) {
+            let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+            let Y = date.getFullYear() + '-';
+            let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+            let D = (date.getDate()+1 < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ' ;
+            let h = date.getHours() + ':';
+            let m = date.getMinutes() + ':';
+            let s = date.getSeconds();
+            return M+D;
+          } else if (typeof timestamp === 'string'){
+            // 新闻数据在下拉刷新的时候由于上面的新闻时间已经修改，所以加次判断
+            return timestamp
+          }
         }
+
+        // 去掉所有的img a 标签内容和空格
+        function someContent(content) {
+          let str = content.replace(/<\/?(img|a)[^>]*>/gi, '')
+          let str1 = str.replace(/&nbsp;/ig, "")
+          let str2 = str1.replace(/\s/g, "");
+          let str3 = str2.replace(/<br(\s)*\/>/g, '');
+          return str3
+        } 
+
         // 用some方法对数据进行检测并操作
         this.newsList.some((item, i) => {
           item.pushTime = timestampToTime(item.pushTime)
+          item.content = someContent(item.content)
         })
      })
     },

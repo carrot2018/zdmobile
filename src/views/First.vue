@@ -139,9 +139,12 @@ export default {
       .main-logo {
         padding-top: 14.8%;
         // height: 100%;
-        width: px2rem(598);
+        // width: px2rem(598);
+        // width: 79.73%;
+        height: 61.13%;
         img{
-          width: 100%;
+          // width: 100%;
+          height: 100%;
         }
       }
     }

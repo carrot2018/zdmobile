@@ -1,9 +1,11 @@
 <template>
   <div class="newsDetail">
     <van-loading v-show="load"/>
+    
     <div class="bar">
       <HeaderLogo></HeaderLogo>
     </div>
+    <div class="bar1"></div>
     <div class="main">
       <div class="main-menu">
         <span>当前位置：</span>
@@ -196,14 +198,32 @@ export default {
       let newObj = result.data;
       // console.log(this.news,result)
       function timestampToTime(timestamp) {
-        let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
-        let Y = date.getFullYear() + '-';
-        let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
-        let D = date.getDate() + ' ';
-        let h = date.getHours() + ':';
-        let m = date.getMinutes() + ':';
-        let s = date.getSeconds();
-        return M+D;
+        let date1 = Math.round(new Date())
+        
+        // 计算时间间隔（数据为时间戳）
+        let timeSpace = date1 - timestamp 
+        // console.log(timeSpace)
+        // 当时间间隔小于一小时和小于一天和大一一天的时间显示
+        if(timeSpace < 3600000) {
+          let timeShow = Math.round(timeSpace/60000) + '分钟前'
+          return timeShow
+        } else if(timeSpace >= 3600000 && timeSpace < 86400000) {
+          let timeShow = Math.round(timeSpace/3600000) + '小时前'
+          return timeShow
+        } else if (timeSpace >= 86400000) {
+          let date = new Date(timestamp);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+          let Y = date.getFullYear() + '-';
+          let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+          let D = (date.getDate()+1 < 10 ? '0'+(date.getDate()) : date.getDate()) + ' ' ;
+          let h = date.getHours() + ':';
+          let m = date.getMinutes() + ':';
+          let s = date.getSeconds();
+          return M+D;
+        } else if (typeof timestamp === 'string'){
+          // 新闻数据在下拉刷新的时候由于上面的新闻时间已经修改，所以加次判断
+          return timestamp
+        }
+        
       }
       
       newObj.pushTime = timestampToTime(newObj.pushTime);
@@ -283,6 +303,7 @@ export default {
 
 <style lang="scss" scoped>
 @import '../styles/common/px2rem.scss';
+
 .van-loading {
   height: px2rem(80);
   width: px2rem(80);
@@ -304,13 +325,18 @@ export default {
   flex-direction: column;
   position: relative;
   .bar {
-    // position: fixed;
+    position: fixed;
     top: 0;
     flex-shrink: 0;
     height: px2rem(120);
+    width: 100%;
     background: #0074cf;
-    position: sticky;
+    // position: sticky;
     // top: 0;
+  }
+  .bar1 {
+     height: px2rem(120);
+     flex-shrink: 0;
   }
   .main {
     // overflow-y: auto;
@@ -359,11 +385,18 @@ export default {
         /deep/ p {
           // margin-bottom: px2rem(50);
           line-height: px2rem(50);
-
         }
         /deep/ img {
           width: 100%
         }
+        /deep/ strong {font-weight: bold;}
+        /deep/ h1 {font-size:1.6em;font-weight: bold;}
+        /deep/ h2 {font-size:1.5em;font-weight: bold;}
+        /deep/ h3 {font-size:1.4em;font-weight: bold;}
+        /deep/ h4 {font-size:1.3em;font-weight: bold;}
+        /deep/ h5 {font-size:1.2em;font-weight: bold;}
+        /deep/ h6 {font-size:1.1em;font-weight: bold;}
+
       }
       &--checkout {
         height: px2rem(248);
@@ -384,6 +417,9 @@ export default {
             margin: px2rem(24) 0 px2rem(14) 0
           }
           h5 {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             font-size: px2rem(28);
             color: #333;
           }
